@@ -2473,6 +2473,9 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) \
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
+BOOT_ZIP_FROM_IMAGE_SCRIPT := ./build/tools/releasetools/boot_flash_from_image
+KERNEL_PATH := $(TARGET_KERNEL_SOURCE)/arch/$(TARGET_ARCH)/configs/$(TARGET_KERNEL_CONFIG)
+
 XOS_TARGET_PACKAGE := $(PRODUCT_OUT)/$(XOS_VERSION).zip
 
 .PHONY: otapackage bacon
@@ -2481,6 +2484,12 @@ bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(XOS_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(XOS_TARGET_PACKAGE) | sed "s|$(PRODUCT_OUT)/||" > $(XOS_TARGET_PACKAGE).md5sum
 	@echo "Package Complete: $(XOS_TARGET_PACKAGE)" >&2
+
+bootzip: bootimage
+	   $(BOOT_ZIP_FROM_IMAGE_SCRIPT) \
+	   $(recovery_fstab) \
+	   $(OUT) \
+	   $(TARGET_DEVICE)
 
 endif    # build_ota_package
 
