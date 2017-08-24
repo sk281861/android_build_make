@@ -111,10 +111,7 @@ def indent(elem, level=0):
             elem.tail = i
 
 def get_default_revision():
-    m = ElementTree.parse(".repo/manifest.xml")
-    d = m.findall('default')[0]
-    r = d.get('revision')
-    return r.replace('refs/heads/', '').replace('refs/tags/', '')
+    return "XOS-8.0"
 
 def get_from_manifest(devicename):
     try:
@@ -265,7 +262,7 @@ else:
                 result.extend (json.loads(urllib.request.urlopen(githubreq).read().decode()))
             
             repo_path = "device/%s/%s" % (manufacturer, device)
-            adding = {'repository':repo_name,'target_path':repo_path}
+            adding = {'repository':repo_name,'target_path':repo_path,'branch':default_revision}
             
             fallback_branch = None
             if not has_branch(result, default_revision):
