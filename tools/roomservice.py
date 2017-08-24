@@ -165,9 +165,14 @@ def add_to_manifest(repositories, fallback_branch = None):
             print('halogenOS/%s already fetched to %s' % (repo_name, repo_target))
             continue
 
-        print('Adding dependency: halogenOS/%s -> %s' % (repo_name, repo_target))
+        print('Adding dependency: %s -> %s' % (
+            ("halogenOS/%s" % repo_name) if "remote" in repository else repo_name,
+            repo_target
+        ))
         project = ElementTree.Element("project", attrib = { "path": repo_target,
-            "remote": "github", "name": "halogenOS/%s" % repo_name })
+            "remote": repository['remote'] if "remote" in repository else "github",
+            "name": repo_name if "remote" in repository \
+                              else ("halogenOS/%s" % repo_name) })
 
         if 'branch' in repository:
             project.set('revision',repository['branch'])
