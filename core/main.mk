@@ -372,7 +372,9 @@ ifneq (,$(user_variant))
   ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=1
   ADDITIONAL_DEFAULT_PROPERTIES += security.perf_harden=1
 
-  ifeq ($(user_variant),user)
+	# Make adb secured for non eng builds
+  ifneq ($(TARGET_BUILD_VARIANT),eng)
+    # Enable ADB authentication
     ADDITIONAL_DEFAULT_PROPERTIES += ro.adb.secure=1
   endif
 
