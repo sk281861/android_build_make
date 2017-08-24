@@ -160,9 +160,7 @@ def add_to_manifest(repositories, fallback_branch = None):
     for repository in repositories:
         repo_name = repository['repository']
         repo_target = repository['target_path']
-        print('Checking if %s is fetched from %s' % (repo_target, repo_name))
         if is_in_manifest(repo_target):
-            print('halogenOS/%s already fetched to %s' % (repo_name, repo_target))
             continue
 
         print('Adding dependency: %s -> %s' % (
