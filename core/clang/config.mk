@@ -68,6 +68,9 @@ endif
 # provides to Clang (for supporting features like -ftrapv).
 COMPILER_RT_CONFIG_EXTRA_STATIC_LIBRARIES := libcompiler_rt-extras
 
+GLOBAL_CLANG_EXCEPTION_PROJECTS := \
+  $(TARGET_DEVICE_DIR)
+
 # A list of projects that are allowed to set LOCAL_CLANG to false.
 # INTERNAL_LOCAL_CLANG_EXCEPTION_PROJECTS is defined later in other config.mk.
 LOCAL_CLANG_EXCEPTION_PROJECTS = \
@@ -80,6 +83,7 @@ LOCAL_CLANG_EXCEPTION_PROJECTS = \
   test/vts/hals/etc/libqdutils/ \
   vendor/huawei/angler/ \
   vendor/lge/bullhead/ \
+  $(GLOBAL_CLANG_EXCEPTION_PROJECTS) \
   $(INTERNAL_LOCAL_CLANG_EXCEPTION_PROJECTS)
 
 # Find $1 in the exception project list.
