@@ -38,6 +38,7 @@ except ImportError:
     # For python2
     import imp
     import urllib2
+
     urllib = imp.new_module('urllib')
     urllib.error = urllib2
     urllib.request = urllib2
@@ -48,6 +49,7 @@ def is_subdir(a, b):
     a = os.path.realpath(a) + '/'
     b = os.path.realpath(b) + '/'
     return b == a[:len(b)]
+
 
 def fetch_query_via_ssh(remote_url, query):
     """Given a remote_url and a query, return the list of changes that fit it
@@ -63,11 +65,11 @@ def fetch_query_via_ssh(remote_url, query):
     else:
         raise Exception('Malformed URI: Expecting ssh://[user@]host[:port]')
 
-
-    out = subprocess.check_output(['ssh', '-x', '-p{0}'.format(port), userhost, 'gerrit', 'query', '--format=JSON --patch-sets --current-patch-set', query])
+    out = subprocess.check_output(['ssh', '-x', '-p{0}'.format(port), userhost, 'gerrit', 'query',
+                                   '--format=JSON --patch-sets --current-patch-set', query])
 
     reviews = []
-    for line in out.split('\n'):
+    for line in out.split(bytes('\n')):
         try:
             data = json.loads(line)
             # make our data look like the http rest api data
@@ -92,12 +94,11 @@ def fetch_query_via_ssh(remote_url, query):
             reviews.append(review)
         except:
             pass
-    args.quiet or print('Found {0} reviews'.format(len(reviews)))
+    not (not args.quiet and not print('Found {0} reviews'.format(len(reviews))))
     return reviews
 
 
 def fetch_query_via_http(remote_url, query):
-
     """Given a query, fetch the change numbers via http"""
     url = '{0}/changes/?q={1}&o=CURRENT_REVISION&o=ALL_REVISIONS'.format(remote_url, query)
     data = urllib.request.urlopen(url).read().decode('utf-8')
@@ -118,6 +119,7 @@ def fetch_query(remote_url, query):
     else:
         raise Exception('Gerrit URL should be in the form http[s]://hostname/ or ssh://[user@]host[:port]')
 
+
 if __name__ == '__main__':
     # Default to halogenOS's Gerrit
     default_gerrit = 'http://review.halogenos.org'
@@ -137,11 +139,16 @@ if __name__ == '__main__':
         The --abandon-first argument, when used in conjunction with the
         --start-branch option, will cause repopick to abandon the specified
         branch in all repos first before performing any cherry picks.'''))
-    parser.add_argument('change_number', nargs='*', help='change number to cherry pick.  Use {change number}/{patchset number} to get a specific revision.')
-    parser.add_argument('-i', '--ignore-missing', action='store_true', help='do not error out if a patch applies to a missing directory')
+    parser.add_argument('change_number', nargs='*',
+                        help='change number to cherry pick.  Use {change number}/{patchset number} to get a specific '
+                             'revision.')
+    parser.add_argument('-i', '--ignore-missing', action='store_true',
+                        help='do not error out if a patch applies to a missing directory')
     parser.add_argument('-s', '--start-branch', nargs=1, help='start the specified branch before cherry picking')
-    parser.add_argument('-a', '--abandon-first', action='store_true', help='before cherry picking, abandon the branch specified in --start-branch')
-    parser.add_argument('-b', '--auto-branch', action='store_true', help='shortcut to "--start-branch auto --abandon-first --ignore-missing"')
+    parser.add_argument('-a', '--abandon-first', action='store_true',
+                        help='before cherry picking, abandon the branch specified in --start-branch')
+    parser.add_argument('-b', '--auto-branch', action='store_true',
+                        help='shortcut to "--start-branch auto --abandon-first --ignore-missing"')
     parser.add_argument('-q', '--quiet', action='store_true', help='print as little as possible')
     parser.add_argument('-v', '--verbose', action='store_true', help='print extra information to aid in debug')
     parser.add_argument('-f', '--force', action='store_true', help='force cherry pick even if change is closed')
@@ -149,7 +156,8 @@ if __name__ == '__main__':
     parser.add_argument('-P', '--path', help='use the specified path for the change')
     parser.add_argument('-t', '--topic', help='pick all commits from a specified topic')
     parser.add_argument('-Q', '--query', help='pick all commits using the specified query')
-    parser.add_argument('-g', '--gerrit', default=default_gerrit, help='Gerrit Instance to use. Form proto://[user@]host[:port]')
+    parser.add_argument('-g', '--gerrit', default=default_gerrit,
+                        help='Gerrit Instance to use. Form proto://[user@]host[:port]')
     parser.add_argument('-e', '--exclude', nargs=1, help='exclude a list of commit numbers separated by a ,')
     args = parser.parse_args()
     if not args.start_branch and args.abandon_first:
@@ -205,13 +213,13 @@ if __name__ == '__main__':
     manifest = subprocess.check_output(['repo', 'manifest'])
     xml_root = ElementTree.fromstring(manifest)
     projects = xml_root.findall('project')
-    remotes= xml_root.findall('remote')
+    remotes = xml_root.findall('remote')
     for i in remotes:
-      if i.get('name') == "XOS" :
-        default_revision=i.get('revision').split('/')[-1]
+        if i.get('name') == "XOS":
+            default_revision = i.get('revision').split('/')[-1]
 
-    #dump project data into the a list of dicts with the following data:
-    #{project: {path, revision}}
+    # dump project data into the a list of dicts with the following data:
+    # {project: {path, revision}}
 
     for project in projects:
         name = project.get('name')
@@ -235,9 +243,15 @@ if __name__ == '__main__':
         change_numbers = sorted([str(r['number']) for r in reviews])
     if args.change_number:
         try:
-            reviews = fetch_query(args.gerrit, ' OR '.join('change:{0}'.format(x.split('/')[0]) for x in args.change_number))
+            reviews = fetch_query(args.gerrit,
+                                  ' OR '.join('change:{0}'.format(x.split('/')[0]) for x in args.change_number))
         except urllib2.HTTPError:
-            reviews = fetch_query(args.gerrit[0:-1], ' OR '.join('change:{0}'.format(x.split('/')[0]) for x in args.change_number))
+            if args.gerrit[-1] == "/":
+                reviews = fetch_query(args.gerrit[:-1],
+                                      ' OR '.join('change:{0}'.format(x.split('/')[0]) for x in args.change_number))
+            else:
+                raise urllib2.HTTPError # Can't do much about this
+
         change_numbers = args.change_number
 
     # make list of things to actually merge
@@ -277,7 +291,9 @@ if __name__ == '__main__':
                 mergables[-1]['fetch'] = [x['fetch'] for x in review['revisions'] if x['_number'] == patchset][0]
                 mergables[-1]['id'] = '{0}/{1}'.format(change, patchset)
             except (IndexError, ValueError):
-                args.quiet or print('ERROR: The patch set {0}/{1} could not be found, using CURRENT_REVISION instead.'.format(change, patchset))
+                args.quiet or print(
+                    'ERROR: The patch set {0}/{1} could not be found, using CURRENT_REVISION instead.'.format(change,
+                                                                                                              patchset))
 
     for item in mergables:
         args.quiet or print('Applying change number {0}...'.format(item['id']))
@@ -293,21 +309,24 @@ if __name__ == '__main__':
         #   - check that the project path exists
         project_path = None
 
-        if item['project'] == "android_manifest" :
-          project_path=".repo/manifests/"
+        if item['project'] == "android_manifest":
+            project_path = ".repo/manifests/"
         else:
-          if item['project'] in project_name_to_data and item['branch'] in project_name_to_data[item['project']]:
-              project_path = project_name_to_data[item['project']][item['branch']]
-          elif os.path.isdir(item['project'].replace("android_", "").replace("_", "/")):
-              project_path = item['project'].replace("android_", "").replace("_", "/")
-          elif args.path:
-              project_path = args.path
-          elif args.ignore_missing:
-              print('WARNING: Skipping {0} since there is no project directory for: {1}\n'.format(item['id'], item['project']))
-              continue
-          else:
-              sys.stderr.write('ERROR: For {0}, could not determine the project path for project {1}\n'.format(item['id'], item['project']))
-              sys.exit(1)
+            if item['project'] in project_name_to_data and item['branch'] in project_name_to_data[item['project']]:
+                project_path = project_name_to_data[item['project']][item['branch']]
+            elif os.path.isdir(item['project'].replace("android_", "").replace("_", "/")):
+                project_path = item['project'].replace("android_", "").replace("_", "/")
+            elif args.path:
+                project_path = args.path
+            elif args.ignore_missing:
+                print('WARNING: Skipping {0} since there is no project directory for: {1}\n'.format(item['id'],
+                                                                                                    item['project']))
+                continue
+            else:
+                sys.stderr.write(
+                    'ERROR: For {0}, could not determine the project path for project {1}\n'.format(item['id'],
+                                                                                                    item['project']))
+                sys.exit(1)
 
         # If --start-branch is given, create the branch (more than once per path is okay; repo ignores gracefully)
         if args.start_branch:
@@ -330,6 +349,7 @@ if __name__ == '__main__':
             cmd = ['git fetch', item['fetch'][method]['url'], item['fetch'][method]['ref']]
         if args.quiet:
             cmd.append('--quiet')
+
         result = subprocess.call([' '.join(cmd)], cwd=project_path, shell=True)
         if result != 0:
             print('ERROR: git command failed')
