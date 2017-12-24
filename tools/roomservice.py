@@ -111,7 +111,7 @@ def indent(elem, level=0):
             elem.tail = i
 
 def get_default_revision():
-    return "XOS-8.0"
+    return "XOS-8.1"
 
 def get_from_manifest(devicename):
     try:
