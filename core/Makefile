@@ -2707,12 +2707,14 @@ KERNEL_PATH := $(TARGET_KERNEL_SOURCE)/arch/$(TARGET_ARCH)/configs/$(TARGET_KERN
 
 XOS_TARGET_PACKAGE := $(PRODUCT_OUT)/$(XOS_VERSION).zip
 
-.PHONY: otapackage bacon
+.PHONY: otapackage bacon vadapav
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(XOS_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(XOS_TARGET_PACKAGE) | sed "s|$(PRODUCT_OUT)/||" > $(XOS_TARGET_PACKAGE).md5sum
 	@echo "Package Complete: $(XOS_TARGET_PACKAGE)" >&2
+
+vadapav: bacon
 
 bootzip: bootimage
 	   $(BOOT_ZIP_FROM_IMAGE_SCRIPT) \
