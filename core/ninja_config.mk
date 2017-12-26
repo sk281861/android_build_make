@@ -1,3 +1,4 @@
+NINJA := $(command -v ninja)
 ifeq ($(filter address,$(SANITIZE_HOST)),)
 NINJA ?= prebuilts/build-tools/$(HOST_PREBUILT_TAG)/bin/ninja
 else
