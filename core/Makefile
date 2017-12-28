@@ -1333,7 +1333,7 @@ $(INSTALLED_RECOVERYIMAGE_TARGET): $(MKBOOTFS) $(MKBOOTIMG) $(MINIGZIP) $(ADBD) 
 		@echo ----- Making uncompressed recovery ramdisk ------
 		$(hide) $(MKBOOTFS) $(TARGET_RECOVERY_ROOT_OUT) > $@
 
-$(recovery_ramdisk): $(MINIGZIP) \
+$(recovery_ramdisk): $(MINIGZIP) $(recovery_uncompressed_ramdisk) \
 		$(recovery_uncompressed_ramdisk)
 		@echo ----- Making compressed recovery ramdisk ------
 		$(hide) $(RECOVERY_RAMDISK_COMPRESSOR) < $(recovery_uncompressed_ramdisk) > $@
