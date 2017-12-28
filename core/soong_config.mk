@@ -40,6 +40,7 @@ $(SOONG_VARIABLES): FORCE xos_soong
 	echo '    "Allow_missing_dependencies": $(if $(ALLOW_MISSING_DEPENDENCIES),true,false),'; \
 	echo '    "SanitizeHost": $(call json_list,$(SANITIZE_HOST)),'; \
 	echo '    "SanitizeDevice": $(call json_list,$(SANITIZE_TARGET)),'; \
+	echo '    "SanitizeDeviceDiag": $(call json_list,$(SANITIZE_TARGET_DIAG)),'; \
 	echo '    "SanitizeDeviceArch": $(call json_list,$(SANITIZE_TARGET_ARCH)),'; \
 	echo '    "HostStaticBinaries": $(if $(strip $(BUILD_HOST_static)),true,false),'; \
 	echo '    "Binder32bit": $(if $(BINDER32BIT),true,false),'; \
@@ -76,10 +77,13 @@ $(SOONG_VARIABLES): FORCE xos_soong
 	echo '    "CrossHostArch": "$(HOST_CROSS_ARCH)",'; \
 	echo '    "CrossHostSecondaryArch": "$(HOST_CROSS_2ND_ARCH)",'; \
 	echo '    "Safestack": $(if $(filter true,$(USE_SAFESTACK)),true,false),'; \
-	echo '    "EnableCFI": $(if $(filter true,$(ENABLE_CFI)),true,false),'; \
-        echo '    "Has_legacy_camera_hal1": $(if $(filter true,$(TARGET_HAS_LEGACY_CAMERA_HAL1)),true,false),'; \
+	echo '    "EnableCFI": $(if $(filter false,$(ENABLE_CFI)),false,true),'; \
+	echo '    "IntegerOverflowExcludePaths": $(call json_list,$(INTEGER_OVERFLOW_EXCLUDE_PATHS) $(PRODUCT_INTEGER_OVERFLOW_EXCLUDE_PATHS)),'; \
+	echo '    "Device_uses_hwc2": $(if $(filter true,$(TARGET_USES_HWC2)),true,false),'; \
+	echo '    "Override_rs_driver": "$(OVERRIDE_RS_DRIVER)",'; \
+	echo '    "Has_legacy_camera_hal1": $(if $(filter true,$(TARGET_HAS_LEGACY_CAMERA_HAL1)),true,false),'; \
 	echo '    "Needs_text_relocations": $(if $(filter true,$(TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS)),true,false),'; \
-        echo '    "Uses_media_extensions": $(if $(filter true,$(TARGET_USES_MEDIA_EXTENSIONS)),true,false),'; \
+	echo '    "Uses_media_extensions": $(if $(filter true,$(TARGET_USES_MEDIA_EXTENSIONS)),true,false),'; \
 	echo '    "Treble": $(if $(filter true,$(PRODUCT_FULL_TREBLE)),true,false),'; \
 	echo '    "Override_rs_driver": "$(OVERRIDE_RS_DRIVER)",'; \
 	echo '    "Libart_img_base": "$(LIBART_IMG_BASE)",'; \
@@ -87,6 +91,9 @@ $(SOONG_VARIABLES): FORCE xos_soong
 	echo ''; \
 	echo '    "ArtUseReadBarrier": $(if $(filter false,$(PRODUCT_ART_USE_READ_BARRIER)),false,true),'; \
 	echo ''; \
+	echo '    "BtConfigIncludeDir": "$(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR)",'; \
+	echo ''; \
+	echo '    "DeviceKernelHeaders": $(call json_list,$(strip $(TARGET_PROJECT_SYSTEM_INCLUDES)))'; \
 	echo '    "ForcedShimLibs": "$(LINKER_FORCED_SHIM_LIBS)",'; \
 	echo '    "BtConfigIncludeDir": "$(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR)"'; \
 	echo '}') >> $(SOONG_VARIABLES_TMP); \
